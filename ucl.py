@@ -3,6 +3,7 @@
 last_16 = [None] * 16
 group_winners = []
 runner_ups = []
+pairs = [None] * 8
 
 def create_team_dict(name, group, rank, association): 
     team = dict.fromkeys(["name", "group", "rank", "association"])
@@ -42,7 +43,6 @@ def check_runner_up_draw(team_name):
     for runner_up in runner_ups: 
         if runner_up["name"].lower() == team_name.lower(): 
             drawn_team = runner_up
-            runner_ups.remove(runner_up)
 
     if "drawn_team" in locals(): 
         return drawn_team
@@ -54,7 +54,6 @@ def check_group_winner_draw(team_name, potential_opponents):
     for potential_opponent in potential_opponents: 
         if potential_opponent["name"].lower() == team_name.lower(): 
             drawn_team = potential_opponent
-            group_winners.remove(potential_opponent)
 
     if "drawn_team" in locals(): 
         return drawn_team
@@ -101,10 +100,20 @@ def main():
         if drawn_group_winner is None: 
             continue
 
+        pairs[draw_count - 1] = [drawn_runner_up, drawn_group_winner]
+        print(f"\n\n{pairs[draw_count - 1][0]['name']} vs {pairs[draw_count - 1][1]['name']} confirmed!\n\n")
+        
+        runner_ups.remove(drawn_runner_up)
+        group_winners.remove(drawn_group_winner)
+
         print_dict(group_winners, "Remaining group winners: ")
         print_dict(runner_ups, "Remaining runner-ups: ")
 
         draw_count += 1
+
+    print("Draw result: ")
+    for i in range(8): 
+        print(f"{pairs[i][0]['name']} vs {pairs[i][1]['name']}")
 
     print("Draw completed!")
 
