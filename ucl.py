@@ -61,11 +61,15 @@ def check_group_winner_draw(team_name, potential_opponents):
         print_dict(group_winners, "Wrong team name entered! Please choose from the following: ")
         return None
 
-def check_potential_opponents(drawn_runner_up): 
+def check_potential_opponents(drawn_runner_up, group_winner_list = group_winners): 
     potential_opponents = []
     impossible_opponents = []
-    for group_winner in group_winners: 
-        if group_winner["group"] != drawn_runner_up["group"] and group_winner["association"] != drawn_runner_up["association"]: 
+
+    for group_winner in group_winner_list: 
+        different_group_and_association = check_group_and_association(drawn_runner_up, group_winner)
+        next_draw_possible = check_next_draw(drawn_runner_up, group_winner)
+
+        if different_group_and_association and next_draw_possible: 
             potential_opponents.append(group_winner)
         else: 
             impossible_opponents.append(group_winner)
@@ -78,6 +82,39 @@ def check_potential_opponents(drawn_runner_up):
             pass
 
     return potential_opponents, impossible_opponents
+
+def check_group_and_association(runner_up, group_winner): 
+    if group_winner["group"] != runner_up["group"] and group_winner["association"] != runner_up["association"]: 
+        return True
+    else: 
+        return False
+        
+def check_next_draw(current_runner_up, current_group_winner): 
+    group_winners_temp = group_winners.copy()
+    runner_ups_temp = runner_ups.copy()
+
+    runner_ups_temp.remove(current_runner_up)
+    group_winners_temp.remove(current_group_winner)
+
+    if runner_ups_temp: 
+        # Check if all runner-ups have at least one possible opponent
+        for next_runner_up in runner_ups_temp: 
+            # Check one runner-up
+            this_runner_up_possible = False
+
+            for next_group_winner in group_winners_temp: 
+                this_runner_up_possible = check_group_and_association(next_runner_up, next_group_winner)
+                if this_runner_up_possible: 
+                    break
+                else: 
+                    continue
+            
+            if not this_runner_up_possible: 
+                return False
+
+        return True
+    else: 
+        return True
 
 def print_dict(teams, description): 
     print("\n\n" + description)
