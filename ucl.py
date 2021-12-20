@@ -69,6 +69,14 @@ def check_potential_opponents(drawn_runner_up):
             potential_opponents.append(group_winner)
         else: 
             impossible_opponents.append(group_winner)
+
+    # Add already paired group winners as impossible opponents
+    for i in range(8): 
+        try: 
+            impossible_opponents.append(pairs[i][1])
+        except TypeError: 
+            pass
+
     return potential_opponents, impossible_opponents
 
 def print_dict(teams, description): 
