@@ -176,21 +176,21 @@ def main():
     draw_count = 1
 
     while(draw_count <= 8): 
-        drawn_runner_up_name = input(f"Please enter runner-up draw No.{draw_count}: ")
-        drawn_runner_up = check_runner_up_draw(drawn_runner_up_name)
+        drawn_runner_up = None
 
-        if drawn_runner_up is None: 
-            continue
+        while drawn_runner_up is None: 
+            drawn_runner_up_name = input(f"Please enter runner-up draw No.{draw_count}: ")
+            drawn_runner_up = check_runner_up_draw(drawn_runner_up_name)
 
         potential_opponents, impossible_opponents = check_potential_opponents(drawn_runner_up)
         print_dict(potential_opponents, "Potential opponents: ")
         print_dict(impossible_opponents, "Impossible opponents: ")
 
-        drawn_group_winner_name = input(f"Please enter group winner draw No.{draw_count}: ")
-        drawn_group_winner = check_group_winner_draw(drawn_group_winner_name, potential_opponents)
+        drawn_group_winner = None
 
-        if drawn_group_winner is None: 
-            continue
+        while drawn_group_winner is None: 
+            drawn_group_winner_name = input(f"Please enter group winner draw No.{draw_count}: ")
+            drawn_group_winner = check_group_winner_draw(drawn_group_winner_name, potential_opponents)
 
         pairs[draw_count - 1] = [drawn_runner_up, drawn_group_winner]
         print(f"\n\n{pairs[draw_count - 1][0]['name']} vs {pairs[draw_count - 1][1]['name']} confirmed!\n\n")
