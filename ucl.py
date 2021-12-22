@@ -58,7 +58,7 @@ def check_group_winner_draw(team_name, potential_opponents):
     if "drawn_team" in locals(): 
         return drawn_team
     else:
-        print_dict(group_winners, "Wrong team name entered! Please choose from the following: ")
+        print_dict(potential_opponents, "Wrong team name entered! Please choose from the following: ")
         return None
 
 def check_potential_opponents(drawn_runner_up, group_winner_list = group_winners): 
@@ -67,7 +67,7 @@ def check_potential_opponents(drawn_runner_up, group_winner_list = group_winners
 
     for group_winner in group_winner_list: 
         different_group_and_association = check_group_and_association(drawn_runner_up, group_winner)
-        next_draw_possible = check_next_draw(drawn_runner_up, group_winner)
+        next_draw_possible = check_remaining_draws(drawn_runner_up, group_winner)
 
         if different_group_and_association and next_draw_possible: 
             potential_opponents.append(group_winner)
@@ -88,33 +88,69 @@ def check_group_and_association(runner_up, group_winner):
         return True
     else: 
         return False
-        
-def check_next_draw(current_runner_up, current_group_winner): 
-    group_winners_temp = group_winners.copy()
-    runner_ups_temp = runner_ups.copy()
 
-    runner_ups_temp.remove(current_runner_up)
-    group_winners_temp.remove(current_group_winner)
+def check_remaining_draws(current_runner_up, current_group_winner): 
+    group_winners_remaining = group_winners.copy()
+    runner_ups_remaining = runner_ups.copy()
 
-    if runner_ups_temp: 
-        # Check if all runner-ups have at least one possible opponent
-        for next_runner_up in runner_ups_temp: 
-            # Check one runner-up
-            this_runner_up_possible = False
+    runner_ups_remaining.remove(current_runner_up)
+    group_winners_remaining.remove(current_group_winner)
 
-            for next_group_winner in group_winners_temp: 
-                this_runner_up_possible = check_group_and_association(next_runner_up, next_group_winner)
-                if this_runner_up_possible: 
+    potential_opponents_of_all_runner_ups = []
+
+    for runner_up_remaining in runner_ups_remaining: 
+        potential_opponents = {"name": runner_up_remaining["name"], "opponents": [], "count": 0}
+
+        for group_winner_remaining in group_winners_remaining: 
+            if check_group_and_association(runner_up_remaining, group_winner_remaining): 
+                potential_opponents["opponents"].append(group_winner_remaining)
+
+        if not potential_opponents["opponents"]: 
+            return False
+
+        potential_opponents["count"] = len(potential_opponents["opponents"])
+
+        potential_opponents_of_all_runner_ups.append(potential_opponents)
+
+    potential_opponents_of_all_runner_ups.sort(key=get_potential_opponents_count)
+
+    remaining_pairs_count = len(potential_opponents_of_all_runner_ups)
+
+    i = 0
+    while i < remaining_pairs_count: 
+        this_draw_possible = False
+
+        opponents = potential_opponents_of_all_runner_ups[i]["opponents"].copy()
+
+        for opponent in opponents: 
+            potential_opponents_before_removal = potential_opponents_of_all_runner_ups.copy()
+            this_opponent_possible = True
+            potential_opponents_of_all_runner_ups[i]["opponents"].remove(opponent)
+
+            for j in range(i + 1, remaining_pairs_count): 
+                if opponent in potential_opponents_of_all_runner_ups[j]["opponents"]: 
+                    potential_opponents_of_all_runner_ups[j]["opponents"].remove(opponent)
+                
+                if not potential_opponents_of_all_runner_ups[j]["opponents"]: 
+                    this_opponent_possible = False
                     break
-                else: 
-                    continue
             
-            if not this_runner_up_possible: 
-                return False
+            if not this_opponent_possible: 
+                potential_opponents_of_all_runner_ups = potential_opponents_before_removal.copy()
+            else: 
+                this_draw_possible = True
+                break
 
-        return True
-    else: 
-        return True
+        if not this_draw_possible: 
+            print("222")
+            return False
+
+        i += 1
+
+    return True
+
+def get_potential_opponents_count(potential_opponents): 
+    return potential_opponents["count"]
 
 def print_dict(teams, description): 
     print("\n\n" + description)
