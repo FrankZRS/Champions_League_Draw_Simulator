@@ -99,7 +99,7 @@ def check_remaining_draws(current_runner_up, current_group_winner):
     potential_opponents_of_all_runner_ups = []
 
     for runner_up_remaining in runner_ups_remaining: 
-        potential_opponents = {"name": runner_up_remaining["name"], "opponents": [], "count": 0}
+        potential_opponents = {"name": runner_up_remaining["name"], "opponents": []}
 
         for group_winner_remaining in group_winners_remaining: 
             if check_group_and_association(runner_up_remaining, group_winner_remaining): 
@@ -108,16 +108,24 @@ def check_remaining_draws(current_runner_up, current_group_winner):
         if not potential_opponents["opponents"]: 
             return False
 
-        potential_opponents["count"] = len(potential_opponents["opponents"])
-
         potential_opponents_of_all_runner_ups.append(potential_opponents)
 
     potential_opponents_of_all_runner_ups.sort(key=get_potential_opponents_count)
+
+    potential_opponents_checkpoints = []
+    for potential_opponents in potential_opponents_of_all_runner_ups: 
+        potential_opponents_checkpoints.append([None] * len(potential_opponents["opponents"]))
+
+    if current_group_winner["name"] == "Juventus": 
+        print(potential_opponents_of_all_runner_ups)
+        print(potential_opponents_checkpoints)
 
     remaining_pairs_count = len(potential_opponents_of_all_runner_ups)
 
     i = 0
     while i < remaining_pairs_count: 
+        this_runner_up_name = potential_opponents_of_all_runner_ups[i]["name"]
+        potential_opponents_checkpoints[i][0] = potential_opponents_of_all_runner_ups.copy()
         this_draw_possible = False
 
         opponents = potential_opponents_of_all_runner_ups[i]["opponents"].copy()
@@ -125,13 +133,16 @@ def check_remaining_draws(current_runner_up, current_group_winner):
         for opponent in opponents: 
             potential_opponents_before_removal = potential_opponents_of_all_runner_ups.copy()
             this_opponent_possible = True
-            potential_opponents_of_all_runner_ups[i]["opponents"].remove(opponent)
 
-            for j in range(i + 1, remaining_pairs_count): 
-                if opponent in potential_opponents_of_all_runner_ups[j]["opponents"]: 
-                    potential_opponents_of_all_runner_ups[j]["opponents"].remove(opponent)
-                
-                if not potential_opponents_of_all_runner_ups[j]["opponents"]: 
+            for runner_up in potential_opponents_of_all_runner_ups: 
+                if current_group_winner["name"] == "Juventus": 
+                    print(str(i) + ". Removing group winner: " + opponent["name"])
+                    print(potential_opponents_of_all_runner_ups)
+
+                if opponent in runner_up["opponents"]: 
+                    runner_up["opponents"].remove(opponent)
+
+                if not runner_up["opponents"] and runner_up["name"] != this_runner_up_name: 
                     this_opponent_possible = False
                     break
             
@@ -143,14 +154,14 @@ def check_remaining_draws(current_runner_up, current_group_winner):
 
         if not this_draw_possible: 
             print("222")
-            return False
+            # go back
 
         i += 1
 
     return True
 
 def get_potential_opponents_count(potential_opponents): 
-    return potential_opponents["count"]
+    return len(potential_opponents["opponents"])
 
 def print_dict(teams, description): 
     print("\n\n" + description)
