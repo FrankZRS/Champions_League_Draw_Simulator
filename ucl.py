@@ -58,7 +58,7 @@ def check_group_winner_draw(team_name, potential_opponents):
     if "drawn_team" in locals(): 
         return drawn_team
     else:
-        print_dict(potential_opponents, "Wrong team name entered! Please choose from the following: ")
+        print_dict(group_winners, "Wrong team name entered! Please choose from the following: ")
         return None
 
 def check_potential_opponents(drawn_runner_up, group_winner_list = group_winners): 
@@ -67,7 +67,7 @@ def check_potential_opponents(drawn_runner_up, group_winner_list = group_winners
 
     for group_winner in group_winner_list: 
         different_group_and_association = check_group_and_association(drawn_runner_up, group_winner)
-        next_draw_possible = check_remaining_draws(drawn_runner_up, group_winner)
+        next_draw_possible = check_next_draw(drawn_runner_up, group_winner)
 
         if different_group_and_association and next_draw_possible: 
             potential_opponents.append(group_winner)
@@ -88,80 +88,33 @@ def check_group_and_association(runner_up, group_winner):
         return True
     else: 
         return False
+        
+def check_next_draw(current_runner_up, current_group_winner): 
+    group_winners_temp = group_winners.copy()
+    runner_ups_temp = runner_ups.copy()
 
-def check_remaining_draws(current_runner_up, current_group_winner): 
-    group_winners_remaining = group_winners.copy()
-    runner_ups_remaining = runner_ups.copy()
+    runner_ups_temp.remove(current_runner_up)
+    group_winners_temp.remove(current_group_winner)
 
-    runner_ups_remaining.remove(current_runner_up)
-    group_winners_remaining.remove(current_group_winner)
+    if runner_ups_temp: 
+        # Check if all runner-ups have at least one possible opponent
+        for next_runner_up in runner_ups_temp: 
+            # Check one runner-up
+            this_runner_up_possible = False
 
-    potential_opponents_of_all_runner_ups = []
-
-    for runner_up_remaining in runner_ups_remaining: 
-        potential_opponents = {"name": runner_up_remaining["name"], "opponents": []}
-
-        for group_winner_remaining in group_winners_remaining: 
-            if check_group_and_association(runner_up_remaining, group_winner_remaining): 
-                potential_opponents["opponents"].append(group_winner_remaining)
-
-        if not potential_opponents["opponents"]: 
-            return False
-
-        potential_opponents_of_all_runner_ups.append(potential_opponents)
-
-    potential_opponents_of_all_runner_ups.sort(key=get_potential_opponents_count)
-
-    potential_opponents_checkpoints = []
-    for potential_opponents in potential_opponents_of_all_runner_ups: 
-        potential_opponents_checkpoints.append([None] * len(potential_opponents["opponents"]))
-
-    if current_group_winner["name"] == "Juventus": 
-        print(potential_opponents_of_all_runner_ups)
-        print(potential_opponents_checkpoints)
-
-    remaining_pairs_count = len(potential_opponents_of_all_runner_ups)
-
-    i = 0
-    while i < remaining_pairs_count: 
-        this_runner_up_name = potential_opponents_of_all_runner_ups[i]["name"]
-        potential_opponents_checkpoints[i][0] = potential_opponents_of_all_runner_ups.copy()
-        this_draw_possible = False
-
-        opponents = potential_opponents_of_all_runner_ups[i]["opponents"].copy()
-
-        for opponent in opponents: 
-            potential_opponents_before_removal = potential_opponents_of_all_runner_ups.copy()
-            this_opponent_possible = True
-
-            for runner_up in potential_opponents_of_all_runner_ups: 
-                if current_group_winner["name"] == "Juventus": 
-                    print(str(i) + ". Removing group winner: " + opponent["name"])
-                    print(potential_opponents_of_all_runner_ups)
-
-                if opponent in runner_up["opponents"]: 
-                    runner_up["opponents"].remove(opponent)
-
-                if not runner_up["opponents"] and runner_up["name"] != this_runner_up_name: 
-                    this_opponent_possible = False
+            for next_group_winner in group_winners_temp: 
+                this_runner_up_possible = check_group_and_association(next_runner_up, next_group_winner)
+                if this_runner_up_possible: 
                     break
+                else: 
+                    continue
             
-            if not this_opponent_possible: 
-                potential_opponents_of_all_runner_ups = potential_opponents_before_removal.copy()
-            else: 
-                this_draw_possible = True
-                break
+            if not this_runner_up_possible: 
+                return False
 
-        if not this_draw_possible: 
-            print("222")
-            # go back
-
-        i += 1
-
-    return True
-
-def get_potential_opponents_count(potential_opponents): 
-    return len(potential_opponents["opponents"])
+        return True
+    else: 
+        return True
 
 def print_dict(teams, description): 
     print("\n\n" + description)
@@ -176,21 +129,21 @@ def main():
     draw_count = 1
 
     while(draw_count <= 8): 
-        drawn_runner_up = None
+        drawn_runner_up_name = input(f"Please enter runner-up draw No.{draw_count}: ")
+        drawn_runner_up = check_runner_up_draw(drawn_runner_up_name)
 
-        while drawn_runner_up is None: 
-            drawn_runner_up_name = input(f"Please enter runner-up draw No.{draw_count}: ")
-            drawn_runner_up = check_runner_up_draw(drawn_runner_up_name)
+        if drawn_runner_up is None: 
+            continue
 
         potential_opponents, impossible_opponents = check_potential_opponents(drawn_runner_up)
         print_dict(potential_opponents, "Potential opponents: ")
         print_dict(impossible_opponents, "Impossible opponents: ")
 
-        drawn_group_winner = None
+        drawn_group_winner_name = input(f"Please enter group winner draw No.{draw_count}: ")
+        drawn_group_winner = check_group_winner_draw(drawn_group_winner_name, potential_opponents)
 
-        while drawn_group_winner is None: 
-            drawn_group_winner_name = input(f"Please enter group winner draw No.{draw_count}: ")
-            drawn_group_winner = check_group_winner_draw(drawn_group_winner_name, potential_opponents)
+        if drawn_group_winner is None: 
+            continue
 
         pairs[draw_count - 1] = [drawn_runner_up, drawn_group_winner]
         print(f"\n\n{pairs[draw_count - 1][0]['name']} vs {pairs[draw_count - 1][1]['name']} confirmed!\n\n")
